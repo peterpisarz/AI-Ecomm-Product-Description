@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Generated Descriptions - AI Product Description Generator{% endblock %}
+
+{% block extra_css %}
+<style>
+    .description-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .description-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .progress-bar-seo {
+        height: 10px;
+        border-radius: 5px;
+    }
+    .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    .seo-score {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .tag-badge {
+        font-size: 0.8rem;
+        margin-right: 0.3rem;
+        margin-bottom: 0.3rem;
+        white-space: nowrap;
+    }
+    .tags-container {
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Generated Descriptions</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+        <i class="fas fa-plus-circle me-2"></i>Generate More
+    </a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">Product Information</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Product Name:</strong> {{ product_info.product_name }}</p>
+                <p><strong>Category:</strong> {{ product_info.category }}</p>
+            </div>
+            <div class="col-md-6">
+                {% if product_info.features %}
+                <p><strong>Features:</strong> {{ product_info.features }}</p>
+                {% endif %}
+                {% if product_info.keywords %}
+                <p><strong>Keywords:</strong> {{ product_info.keywords }}</p>
+                {% endif %}
+                {% if tone %}
+                <p><strong>Tone:</strong> {{ tone|capitalize }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% for i in range(descriptions|length) %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card shadow-sm border-0 h-100 description-card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Description {{ i + 1 }}</h5>
+                <button class="btn btn-sm btn-light copy-btn" onclick="copyDescription({{ i }})">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="description-text mb-4" id="description-{{ i }}">
+                    {{ descriptions[i]|nl2br }}
+                </div>
+                
+                <hr>
+                
+                {% if tags_list and tags_list[i] %}
+                <h6>Suggested Tags</h6>
+                <div class="tags-container mb-3">
+                    {% for tag in tags_list[i] %}
+                    <span class="badge bg-secondary tag-badge">#{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <h6>SEO Analysis</h6>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-3">
+                        <div class="seo-score">{{ "%.1f"|format(seo_analyses[i].analysis.seo_score) }}</div>
+                        <small>SEO Score</small>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="progress progress-bar-seo">
+                            {% set score = seo_analyses[i].analysis.seo_score %}
+                            {% if score < 50 %}
+                                {% set color = "danger" %}
+                            {% elif score < 70 %}
+                                {% set color = "warning" %}
+                            {% else %}
+                                {% set color = "success" %}
+                            {% endif %}
+                            <div class="progress-bar bg-{{ color }}" role="progressbar" style="width: {{ score }}%" aria-valuenow="{{ score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <p><strong>Word Count:</strong> {{ seo_analyses[i].analysis.total_words }}</p>
+                    <p><strong>Keyword Density:</strong> {{ "%.1f"|format(seo_analyses[i].analysis.keyword_density * 100) }}%</p>
+                    <p><strong>Keywords Found:</strong> {{ seo_analyses[i].analysis.keywords_found }}/{{ seo_analyses[i].analysis.keyword_counts|length }}</p>
+                </div>
+                
+                {% if seo_analyses[i].suggestions %}
+                <div class="mt-3">
+                    <h6>Improvement Suggestions</h6>
+                    <ul class="text-muted small">
+                        {% for suggestion in seo_analyses[i].suggestions %}
+                        <li>{{ suggestion }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-light">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="downloadDescription({{ i }})">
+                        <i class="fas fa-download me-2"></i>Download Description
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="copyTags({{ i }})">
+                        <i class="fas fa-tags me-2"></i>Copy Tags
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function copyDescription(index) {
+        const description = document.getElementById(`description-${index}`).innerText;
+        navigator.clipboard.writeText(description).then(() => {
+            // Show toast or notification
+            alert('Description copied to clipboard!');
+        });
+    }
+    
+    function copyTags(index) {
+        const tags = [];
+        const tagElements = document.querySelectorAll(`.description-card:nth-of-type(${index + 1}) .tag-badge`);
+        tagElements.forEach(tag => {
+            tags.push(tag.innerText.replace('#', ''));
+        });
+        
+        navigator.clipboard.writeText(tags.join(', ')).then(() => {
+            alert('Tags copied to clipboard!');
+        });
+    }
+    
+    function downloadDescription(index) {
+        const description = document.getElementById(`description-${index}`).innerText;
+        const productName = "{{ product_info.product_name }}".replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const filename = `${productName}_description_${index + 1}.txt`;
+        
+        const element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(description));
+        element.setAttribute('download', filename);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }
+</script>
+{% endblock %} 

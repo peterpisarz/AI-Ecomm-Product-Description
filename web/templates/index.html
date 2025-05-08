@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}AI Product Description Generator{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tag-suggestion {
+        cursor: pointer;
+        padding: 5px 10px;
+        margin: 0 5px 5px 0;
+        display: inline-block;
+        border-radius: 15px;
+        background-color: #f0f0f0;
+        transition: background-color 0.2s;
+    }
+    .tag-suggestion:hover {
+        background-color: #e0e0e0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h1 class="card-title mb-4">AI Product Description Generator</h1>
+                <p class="lead">Generate compelling, SEO-optimized product descriptions for your e-commerce business in seconds.</p>
+                <p>Our AI-powered generator creates unique, engaging product descriptions that help drive conversions and improve search engine rankings.</p>
+                <div class="d-flex mb-4">
+                    <div class="me-3">
+                        <i class="fas fa-check-circle text-success fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5>Multiple Tone Options</h5>
+                        <p class="text-muted">Choose from casual, professional, luxury, technical, or persuasive tones to match your brand voice.</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-4">
+                    <div class="me-3">
+                        <i class="fas fa-check-circle text-success fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5>SEO Optimization</h5>
+                        <p class="text-muted">Include keywords for better search engine visibility and get SEO analysis for each description.</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-4">
+                    <div class="me-3">
+                        <i class="fas fa-check-circle text-success fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5>Smart Product Tagging</h5>
+                        <p class="text-muted">Get AI-generated product tags to improve searchability and categorization of your products.</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-4">
+                    <div class="me-3">
+                        <i class="fas fa-check-circle text-success fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5>Bulk Generation</h5>
+                        <p class="text-muted">Generate descriptions for multiple products at once using our <a href="{{ url_for('bulk') }}">bulk upload</a> feature.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-pencil-alt me-2"></i>Generate Descriptions</h4>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('generate') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="product_name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="product_name" name="product_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="">-- Select Category --</option>
+                            {% for category in category_options %}
+                            <option value="{{ category }}">{{ category|capitalize }}</option>
+                            {% endfor %}
+                            <option value="other">Other (specify below)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 d-none" id="custom_category_div">
+                        <label for="custom_category" class="form-label">Custom Category <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="custom_category" name="custom_category">
+                    </div>
+                    <div class="mb-3">
+                        <label for="features" class="form-label">Product Features</label>
+                        <textarea class="form-control" id="features" name="features" rows="3" placeholder="Key features of your product (separated by pipe |)"></textarea>
+                        <div class="form-text">Example: Waterproof | Bluetooth 5.0 | 10-hour battery life</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="keywords" class="form-label">SEO Keywords</label>
+                        <input type="text" class="form-control" id="keywords" name="keywords" placeholder="Keywords separated by commas">
+                        <div class="form-text">Example: wireless earbuds, noise cancellation, premium audio</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="tone" class="form-label">Tone</label>
+                            <select class="form-select" id="tone" name="tone">
+                                <option value="">-- Select Tone --</option>
+                                {% for tone in tone_options %}
+                                <option value="{{ tone }}">{{ tone|capitalize }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="num_descriptions" class="form-label">Number of Descriptions</label>
+                            <select class="form-select" id="num_descriptions" name="num_descriptions">
+                                <option value="1">1</option>
+                                <option value="3" selected>3</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-robot me-2"></i>Generate Descriptions
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-light">
+                <h4 class="mb-0">How It Works</h4>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <div class="p-3">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-info-circle fa-2x"></i>
+                            </div>
+                            <h5>1. Enter Product Details</h5>
+                            <p>Provide basic information about your product, including name, category, and key features.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <div class="p-3">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-cogs fa-2x"></i>
+                            </div>
+                            <h5>2. AI Generation</h5>
+                            <p>Our advanced AI model creates multiple unique and engaging product descriptions with smart product tags.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-check fa-2x"></i>
+                            </div>
+                            <h5>3. Choose and Customize</h5>
+                            <p>Review the generated descriptions, get SEO analysis, and select the best one for your product.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle custom category selection
+    document.getElementById('category').addEventListener('change', function() {
+        const customCategoryDiv = document.getElementById('custom_category_div');
+        if (this.value === 'other') {
+            customCategoryDiv.classList.remove('d-none');
+            document.getElementById('custom_category').setAttribute('required', 'required');
+        } else {
+            customCategoryDiv.classList.add('d-none');
+            document.getElementById('custom_category').removeAttribute('required');
+        }
+    });
+    
+    // Form submission handler
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (document.getElementById('category').value === 'other') {
+            // If "other" category is selected, use the custom category value
+            const customCategory = document.getElementById('custom_category').value.trim();
+            if (customCategory) {
+                // Set the custom category as the actual category value
+                document.getElementById('category').value = customCategory;
+            } else {
+                e.preventDefault();
+                alert('Please specify a custom category');
+            }
+        }
+    });
+    
+    // Example feature suggestions based on category
+    const categoryFeatures = {
+        'electronics': ['Wireless | Rechargeable | Water-resistant', 'HD Display | Fast Processor | Long Battery Life'],
+        'clothing': ['100% Cotton | Machine Washable | Slim Fit', 'Breathable Fabric | Adjustable Size | UV Protection'],
+        'home': ['Stain Resistant | Easy to Clean | Ergonomic Design', 'Space Saving | Multifunctional | Premium Materials'],
+        'beauty': ['Cruelty-Free | Paraben-Free | Dermatologist Tested', 'Long-Lasting | Quick-Drying | Anti-Aging'],
+        'books': ['Hardcover | Illustrated | Limited Edition', 'Bestseller | Award-Winning | First Edition']
+    };
+    
+    // Update feature suggestions when category changes
+    document.getElementById('category').addEventListener('change', function() {
+        const category = this.value;
+        const featuresInput = document.getElementById('features');
+        
+        if (category in categoryFeatures) {
+            // Set a placeholder with suggestions
+            const suggestions = categoryFeatures[category];
+            featuresInput.placeholder = suggestions[Math.floor(Math.random() * suggestions.length)];
+        } else {
+            featuresInput.placeholder = 'Key features of your product (separated by pipe |)';
+        }
+    });
+</script>
+{% endblock %} 
