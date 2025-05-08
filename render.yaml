@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: ai-ecomm
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn 'simple_app:create_app()' --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DEBUG
+        value: false
+      - key: SECRET_KEY
+        fromDatabase:
+          name: secret_key
+          property: value
+    plan: free 

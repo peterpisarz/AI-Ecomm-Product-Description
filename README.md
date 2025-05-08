@@ -49,6 +49,31 @@ python app.py
 gunicorn -w 4 "app:create_app()"
 ```
 
+### Deploying to Render
+
+This application is configured for deployment on Render.com as a web service:
+
+1. Push your code to a Git repository (GitHub, GitLab, etc.)
+2. Create a new Web Service on Render
+3. Connect your Git repository
+4. Render will automatically use the render.yaml configuration
+
+Alternatively, you can configure manually:
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `gunicorn 'simple_app:create_app()' --bind 0.0.0.0:$PORT`
+
+Required environment variables:
+- `PORT`: Set by Render automatically
+- `DEBUG`: Set to false
+- `SECRET_KEY`: Set to a secure random string
+
+#### Testing Locally
+
+To test the Render configuration locally:
+```bash
+gunicorn 'simple_app:create_app()' --bind 0.0.0.0:5000
+```
+
 ## Project Structure
 
 - `app.py` - Flask application entry point
